@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lease Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@400;500;600;800&display=swap" rel="stylesheet">
+<style>
+/* Concept: a technical accounting workpaper you can change. Facts on the left, the
+   accounting on the right, in the order you'd document it: classify, measure, record,
+   then the schedule. Finance (blue) and operating (green) are the only two colors. */
+:root {
+  --bg: #f3f4f6;
+  --panel: #ffffff;
+  --ink: #15181e;
+  --muted: #5e6573;
+  --line: #dde0e6;
+  --fin: #3446c9;
+  --op: #13806a;
+  --warn: #9a5b00;
+  --font: "Libre Franklin", "Helvetica Neue", Arial, sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111317; --panel: #1a1d23; --ink: #e8eaee; --muted: #9aa1ad; --line: #2c3038;
+    --fin: #8b98ff; --op: #4fc6a8; --warn: #e3a948; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #111317; --panel: #1a1d23; --ink: #e8eaee; --muted: #9aa1ad; --line: #2c3038;
+  --fin: #8b98ff; --op: #4fc6a8; --warn: #e3a948; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--bg); color: var(--ink); }
+body { font: 15px/1.55 var(--font); font-variant-numeric: tabular-nums; }
+.app { display: grid; grid-template-columns: 330px minmax(0, 1fr); gap: 20px; max-width: 1240px; margin: 0 auto; padding: 20px; align-items: start; }
+
+/* Facts panel */
+aside.facts { position: sticky; top: 20px; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 18px; max-height: calc(100vh - 40px); overflow-y: auto; }
+.title { font-weight: 800; font-size: 1.3rem; letter-spacing: -0.02em; margin: 0; }
+.subtitle { color: var(--muted); margin: 2px 0 14px; font-size: .9rem; }
+.presets { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+.presets button { font: 500 .8rem var(--font); background: var(--bg); color: var(--ink); border: 1px solid var(--line); border-radius: 14px; padding: 4px 10px; cursor: pointer; }
+.presets button:hover { border-color: var(--muted); }
+fieldset { border: 0; border-top: 1px solid var(--line); margin: 0; padding: 12px 0 4px; }
+legend { font-weight: 600; font-size: .9rem; padding: 0 6px 0 0; }
+.field { display: grid; grid-template-columns: 1fr 120px; align-items: center; gap: 8px; margin: 7px 0; font-size: .9rem; }
+.field label { color: var(--muted); }
+.field input, .field select { width: 100%; font: 500 .9rem var(--font); font-variant-numeric: tabular-nums; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 5px; padding: 5px 7px; text-align: right; }
+.field select { text-align: left; }
+.check { display: flex; gap: 8px; align-items: flex-start; margin: 8px 0; font-size: .88rem; color: var(--muted); }
+.check input { margin-top: 3px; }
+input:focus-visible, select:focus-visible, button:focus-visible { outline: 2px solid var(--fin); outline-offset: 1px; }
+.conventions { font-size: .78rem; color: var(--muted); border-top: 1px solid var(--line); margin-top: 12px; padding-top: 10px; }
+.conventions p { margin: 0 0 6px; }
+
+/* Workpaper */
+main { display: grid; gap: 16px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 20px 22px; }
+h2 { font-size: 1.1rem; font-weight: 800; margin: 0 0 4px; letter-spacing: -0.01em; }
+.step { color: var(--muted); font-weight: 500; margin-right: 6px; }
+.why { color: var(--muted); font-size: .9rem; margin: 0 0 14px; max-width: 70ch; }
+
+.verdict { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: 12px; }
+.badge { font-weight: 800; font-size: 1.05rem; padding: 6px 14px; border-radius: 6px; color: #fff; }
+.badge.finance { background: var(--fin); }
+.badge.operating { background: var(--op); }
+:root[data-theme="dark"] .badge, .badge { color: #fff; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .badge { color: #111317; } }
+:root[data-theme="dark"] .badge { color: #111317; }
+.override { font-size: .85rem; color: var(--muted); display: flex; gap: 6px; align-items: center; }
+.override select { font: 500 .85rem var(--font); padding: 3px 6px; border: 1px solid var(--line); border-radius: 5px; background: var(--bg); color: var(--ink); }
+ol.tests { list-style: none; padding: 0; margin: 0; display: grid; gap: 2px; }
+ol.tests li { display: grid; grid-template-columns: 28px 1fr auto; gap: 10px; align-items: baseline; padding: 7px 0; border-bottom: 1px solid var(--line); font-size: .92rem; }
+ol.tests li:last-child { border-bottom: 0; }
+.mark { font-weight: 800; text-align: center; border-radius: 4px; font-size: .8rem; padding: 1px 0; }
+.mark.yes { background: var(--fin); color: var(--panel); }
+.mark.no { color: var(--muted); border: 1px solid var(--line); }
+.tests .detail { color: var(--muted); font-size: .85rem; text-align: right; }
+.override-note { color: var(--warn); font-size: .88rem; margin-top: 10px; }
+
+.measure { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 18px; margin-bottom: 16px; }
+.calc { border-left: 3px solid var(--line); padding-left: 12px; }
+.calc .k { color: var(--muted); font-size: .85rem; }
+.calc .v { font-weight: 800; font-size: 1.35rem; letter-spacing: -0.01em; }
+.calc .f { color: var(--muted); font-size: .8rem; }
+
+table.je { border-collapse: collapse; width: 100%; max-width: 640px; font-size: .92rem; }
+.je th { text-align: right; font-weight: 600; color: var(--muted); font-size: .8rem; padding: 4px 8px; border-bottom: 1px solid var(--line); }
+.je th:first-child { text-align: left; }
+.je td { padding: 5px 8px; }
+.je td.amt { text-align: right; width: 130px; white-space: nowrap; }
+.je tr.cr td:first-child { padding-left: 36px; }
+.je tfoot td { border-top: 1px solid var(--ink); font-weight: 600; }
+.je-caption { font-size: .85rem; color: var(--muted); margin: 0 0 6px; }
+
+.legend { display: flex; gap: 18px; font-size: .85rem; margin: 0 0 6px; flex-wrap: wrap; }
+.legend span::before { content: ""; display: inline-block; width: 12px; height: 12px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; background: var(--c); }
+svg.chart { width: 100%; height: auto; display: block; }
+svg.chart text { fill: var(--muted); font: 12px var(--font); }
+.charts { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.charts h3 { font-size: .92rem; margin: 0 0 4px; font-weight: 600; }
+
+.tabs { display: flex; gap: 4px; margin-bottom: 10px; flex-wrap: wrap; }
+.tabs button { font: 600 .85rem var(--font); padding: 5px 12px; border-radius: 5px; border: 1px solid var(--line); background: var(--bg); color: var(--muted); cursor: pointer; }
+.tabs button[aria-pressed="true"] { background: var(--ink); color: var(--panel); border-color: var(--ink); }
+.scroll { overflow-x: auto; max-height: 460px; overflow-y: auto; border: 1px solid var(--line); border-radius: 6px; }
+table.sched { border-collapse: collapse; width: 100%; font-size: .85rem; min-width: 720px; }
+.sched th { position: sticky; top: 0; background: var(--panel); text-align: right; font-weight: 600; color: var(--muted); padding: 7px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.sched td { text-align: right; padding: 5px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.sched th:first-child, .sched td:first-child { text-align: left; }
+.sched tr { cursor: pointer; }
+.sched tr:hover td { background: var(--bg); }
+.sched tr.sel td { background: color-mix(in srgb, var(--fin) 12%, transparent); }
+.sched tr.yearend td { border-bottom: 1px solid var(--muted); }
+.entry-box { margin-top: 14px; }
+
+.bs { border-collapse: collapse; font-size: .88rem; min-width: 520px; width: 100%; }
+.bs th, .bs td { padding: 5px 10px; text-align: right; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.bs th:first-child, .bs td:first-child { text-align: left; }
+.bs th { color: var(--muted); font-weight: 600; }
+
+@media (max-width: 900px) {
+  .app { grid-template-columns: 1fr; padding: 12px; }
+  aside.facts { position: static; max-height: none; }
+  .charts { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="facts" aria-label="Lease facts">
+    <p class="title">Lease Lab</p>
+    <p class="subtitle">ASC 842, lessee accounting. Change any fact and the accounting updates.</p>
+    <div class="presets" id="presets"></div>
+    <form id="facts" autocomplete="off">
+      <fieldset>
+        <legend>Payments</legend>
+        <div class="field"><label for="payment">Payment amount ($)</label><input id="payment" type="number" step="0.01" min="0"></div>
+        <div class="field"><label for="frequency">Paid</label><select id="frequency"><option value="monthly">Monthly</option><option value="quarterly">Quarterly</option><option value="annual">Annually</option></select></div>
+        <div class="field"><label for="timing">Timing</label><select id="timing"><option value="advance">In advance</option><option value="arrears">In arrears</option></select></div>
+        <div class="field"><label for="termYears">Lease term (years)</label><input id="termYears" type="number" step="0.25" min="0.25"></div>
+        <div class="field"><label for="escalationPct">Annual escalation (%)</label><input id="escalationPct" type="number" step="0.1" min="0"></div>
+        <div class="field"><label for="annualRate">Discount rate (%)</label><input id="annualRate" type="number" step="0.01" min="0"></div>
+      </fieldset>
+      <fieldset>
+        <legend>At commencement</legend>
+        <div class="field"><label for="idc">Initial direct costs ($)</label><input id="idc" type="number" step="0.01" min="0"></div>
+        <div class="field"><label for="incentives">Lease incentives received ($)</label><input id="incentives" type="number" step="0.01" min="0"></div>
+        <div class="field"><label for="prepaid">Prepaid rent ($)</label><input id="prepaid" type="number" step="0.01" min="0"></div>
+      </fieldset>
+      <fieldset>
+        <legend>For classification</legend>
+        <div class="field"><label for="fairValue">Asset fair value ($)</label><input id="fairValue" type="number" step="0.01" min="0"></div>
+        <div class="field"><label for="economicLifeYears">Remaining economic life (years)</label><input id="economicLifeYears" type="number" step="0.5" min="0"></div>
+        <label class="check"><input type="checkbox" id="transferOwnership"> Ownership transfers at end of term</label>
+        <label class="check"><input type="checkbox" id="purchaseOption"> Purchase option reasonably certain to be exercised</label>
+        <label class="check"><input type="checkbox" id="specialized"> Specialized asset with no alternative use</label>
+      </fieldset>
+    </form>
+    <div class="conventions">
+      <p>Periodic rate is the annual rate divided by payments per year. Escalations step up every 12 months.</p>
+      <p>The 75% and 90% thresholds are the common reasonable approach in ASC 842-10-55-2, not bright lines in the standard.</p>
+      <p>A learning tool. Check real engagements against the standard and your firm's guidance.</p>
+    </div>
+  </aside>
+
+  <main>
+    <section class="card" aria-labelledby="h-classify">
+      <h2 id="h-classify"><span class="step">1</span>Classify the lease</h2>
+      <p class="why">A lessee has a finance lease if any one of the five criteria in ASC 842-10-25-2 is met. Otherwise it's an operating lease.</p>
+      <div class="verdict">
+        <span class="badge" id="badge"></span>
+        <label class="override">Show as
+          <select id="override"><option value="">Result of the tests</option><option value="finance">Finance lease</option><option value="operating">Operating lease</option></select>
+        </label>
+      </div>
+      <ol class="tests" id="tests"></ol>
+      <p class="override-note" id="override-note" hidden></p>
+    </section>
+
+    <section class="card" aria-labelledby="h-measure">
+      <h2 id="h-measure"><span class="step">2</span>Measure at commencement</h2>
+      <p class="why">The liability is the present value of payments not yet made. The right-of-use asset starts from the liability, then adds payments made at or before commencement and initial direct costs, and subtracts incentives received.</p>
+      <div class="measure" id="measure"></div>
+      <p class="je-caption">Commencement entry</p>
+      <table class="je" id="je-initial"></table>
+    </section>
+
+    <section class="card" aria-labelledby="h-effect">
+      <h2 id="h-effect"><span class="step">3</span>See the effect over time</h2>
+      <p class="why" id="effect-why"></p>
+      <div class="legend"><span style="--c:var(--fin)">Finance lease</span><span style="--c:var(--op)">Operating lease</span></div>
+      <div class="charts">
+        <div><h3>Expense by year</h3><svg class="chart" id="chart-expense" viewBox="0 0 440 240" role="img"></svg></div>
+        <div><h3>Right-of-use asset at year end</h3><svg class="chart" id="chart-rou" viewBox="0 0 440 240" role="img"></svg></div>
+      </div>
+    </section>
+
+    <section class="card" aria-labelledby="h-bs">
+      <h2 id="h-bs"><span class="step">4</span>Year-end balances and expense</h2>
+      <p class="why">Year ends fall on each anniversary of commencement. The current portion is the net paydown of the liability over the next 12 months; for leases paid in advance, the next payment is due the day after year end.</p>
+      <div class="scroll" style="max-height:none"><table class="bs" id="bs"></table></div>
+    </section>
+
+    <section class="card" aria-labelledby="h-sched">
+      <h2 id="h-sched"><span class="step">5</span>Full schedule and entries</h2>
+      <p class="why">Select any period to see its journal entry.</p>
+      <div class="tabs" role="group" aria-label="Classification shown in schedule">
+        <button type="button" id="tab-fin" aria-pressed="true">Finance lease</button>
+        <button type="button" id="tab-op" aria-pressed="false">Operating lease</button>
+      </div>
+      <div class="scroll"><table class="sched" id="sched"></table></div>
+      <div class="entry-box"><p class="je-caption" id="je-period-cap"></p><table class="je" id="je-period"></table></div>
+    </section>
+  </main>
+</div>
+
+<script src="src/asc842.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+const fmt = n => (n < 0 ? "(" : "") + Math.abs(n).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + (n < 0 ? ")" : "");
+const usd = n => "$" + fmt(n);
+const k = n => Math.abs(n) >= 1e6 ? "$" + (n / 1e6).toFixed(1) + "M" : Math.abs(n) >= 1e3 ? "$" + Math.round(n / 1e3) + "K" : "$" + Math.round(n);
+
+const PRESETS = {
+  "Office space": { payment: 12000, frequency: "monthly", timing: "advance", termYears: 5, escalationPct: 3, annualRate: 6, idc: 5000, incentives: 20000, prepaid: 0, fairValue: 4000000, economicLifeYears: 40, transferOwnership: false, purchaseOption: false, specialized: false },
+  "Delivery truck": { payment: 2100, frequency: "monthly", timing: "arrears", termYears: 5, escalationPct: 0, annualRate: 7, idc: 0, incentives: 0, prepaid: 0, fairValue: 115000, economicLifeYears: 6, transferOwnership: false, purchaseOption: false, specialized: false },
+  "Machine with buyout": { payment: 30000, frequency: "annual", timing: "advance", termYears: 4, escalationPct: 0, annualRate: 5.5, idc: 1500, incentives: 0, prepaid: 0, fairValue: 160000, economicLifeYears: 10, transferOwnership: false, purchaseOption: true, specialized: false },
+  "Textbook 5-year": { payment: 10000, frequency: "annual", timing: "arrears", termYears: 5, escalationPct: 0, annualRate: 5, idc: 0, incentives: 0, prepaid: 0, fairValue: 60000, economicLifeYears: 10, transferOwnership: false, purchaseOption: false, specialized: false }
+};
+const NUM = ["payment", "termYears", "escalationPct", "annualRate", "idc", "incentives", "prepaid", "fairValue", "economicLifeYears"];
+const SEL = ["frequency", "timing"];
+const BOOL = ["transferOwnership", "purchaseOption", "specialized"];
+
+function load(p) {
+  NUM.forEach(id => $(id).value = p[id]);
+  SEL.forEach(id => $(id).value = p[id]);
+  BOOL.forEach(id => $(id).checked = !!p[id]);
+}
+function read() {
+  const o = {};
+  NUM.forEach(id => o[id] = parseFloat($(id).value) || 0);
+  SEL.forEach(id => o[id] = $(id).value);
+  BOOL.forEach(id => o[id] = $(id).checked);
+  o.override = $("override").value;
+  return o;
+}
+
+let state = { view: null, sel: 0, result: null, input: null };
+
+function jeTable(lines, total = true) {
+  const rows = lines.map(l => `<tr class="${l.cr > 0 ? "cr" : ""}"><td>${l.account}</td><td class="amt">${l.dr ? fmt(l.dr) : ""}</td><td class="amt">${l.cr ? fmt(l.cr) : ""}</td></tr>`).join("");
+  const dr = lines.reduce((s, l) => s + l.dr, 0), cr = lines.reduce((s, l) => s + l.cr, 0);
+  return `<thead><tr><th>Account</th><th>Debit</th><th>Credit</th></tr></thead><tbody>${rows}</tbody>${total ? `<tfoot><tr><td>Total</td><td class="amt">${fmt(dr)}</td><td class="amt">${fmt(cr)}</td></tr></tfoot>` : ""}`;
+}
+
+function barChart(svg, series, labels, opts = {}) {
+  const W = 440, H = 240, L = 52, R = 8, T = 10, B = 28;
+  const max = Math.max(1, ...series.flatMap(s => s.values)) * 1.08;
+  const step = niceStep(max / 4);
+  const top = Math.ceil(max / step) * step;
+  const y = v => T + (H - T - B) * (1 - v / top);
+  const gw = (W - L - R) / labels.length, bw = Math.min(26, gw * 0.36);
+  let s = "";
+  for (let v = 0; v <= top + 1e-9; v += step) s += `<line x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)"/><text x="${L - 6}" y="${y(v) + 4}" text-anchor="end">${k(v)}</text>`;
+  const every = Math.ceil(labels.length / 10);
+  labels.forEach((lab, i) => {
+    const cx = L + gw * i + gw / 2;
+    series.forEach((se, j) => {
+      const v = se.values[i] || 0, x = cx - bw + j * bw;
+      s += `<rect x="${x}" y="${y(v)}" width="${bw - 1}" height="${Math.max(0, y(0) - y(v))}" fill="${se.color}"><title>${se.name}, year ${lab}: ${usd(v)}</title></rect>`;
+    });
+    if (i % every === 0) s += `<text x="${cx}" y="${H - 8}" text-anchor="middle">Yr ${lab}</text>`;
+  });
+  svg.innerHTML = s;
+  svg.setAttribute("aria-label", opts.label || "");
+}
+function niceStep(raw) {
+  const p = Math.pow(10, Math.floor(Math.log10(raw))), m = raw / p;
+  return (m <= 1 ? 1 : m <= 2 ? 2 : m <= 5 ? 5 : 10) * p;
+}
+
+function render() {
+  const input = read();
+  let res;
+  try { res = ASC842.analyze(input); } catch (e) { $("tests").innerHTML = `<li><span></span><span>${e.message}</span><span></span></li>`; return; }
+  state.result = res; state.input = input;
+  const c = res.classification, chosen = res.chosen;
+
+  // 1. Classification
+  $("badge").textContent = chosen === "finance" ? "Finance lease" : "Operating lease";
+  $("badge").className = "badge " + chosen;
+  $("tests").innerHTML = c.tests.map(t => `<li><span class="mark ${t.met ? "yes" : "no"}">${t.met ? "Met" : "No"}</span><span>${t.name}</span><span class="detail">${t.detail}</span></li>`).join("");
+  const note = $("override-note");
+  if (input.override && input.override !== c.classification) {
+    note.hidden = false;
+    note.textContent = `The tests point to a ${c.classification} lease. You're viewing it as ${input.override} to compare the accounting.`;
+  } else note.hidden = true;
+
+  // 2. Measurement
+  const S = res[chosen], init = S.initial, cn = ASC842.normalize(input);
+  const per = { 12: "month", 4: "quarter", 1: "year" }[cn.ppy];
+  $("measure").innerHTML = [
+    ["Lease liability", init.liability, `PV of ${input.timing === "advance" ? S.n - 1 : S.n} remaining payments at ${(cn.r * 100).toFixed(4)}% per ${per}`],
+    ["Right-of-use asset", init.rou, `Liability${init.commencementPayment ? " + first payment" : ""}${input.idc ? " + IDC" : ""}${input.prepaid ? " + prepaid rent" : ""}${input.incentives ? " − incentives" : ""}`],
+    ["Total undiscounted payments", S.totalPayments, `${S.n} payments; ${usd(S.totalPayments - init.liability - init.commencementPayment)} of that is interest`],
+    chosen === "finance"
+      ? ["Amortization per " + per, S.amortPerPeriod, `Straight-line over ${S.amortPeriods} ${per}s${S.amortPeriods > S.n ? " (economic life)" : " (lease term)"}`]
+      : ["Straight-line lease cost per " + per, S.straightLine, `Total cost ${usd(S.totalCost)} ÷ ${S.n} ${per}s`]
+  ].map(([kk, v, f]) => `<div class="calc"><div class="k">${kk}</div><div class="v">${usd(v)}</div><div class="f">${f}</div></div>`).join("");
+  $("je-initial").innerHTML = jeTable(init.entry);
+
+  // 3. Charts
+  const yrs = Math.max(res.finance.years.length, res.operating.years.length);
+  const labels = Array.from({ length: yrs }, (_, i) => i + 1);
+  const fe = res.finance.years.map(y => y.totalExpense), oe = res.operating.years.map(y => y.totalExpense);
+  barChart($("chart-expense"), [{ name: "Finance", values: fe, color: "var(--fin)" }, { name: "Operating", values: oe, color: "var(--op)" }], labels, { label: "Annual expense, finance versus operating" });
+  barChart($("chart-rou"), [{ name: "Finance", values: res.finance.years.map(y => y.rouEnd), color: "var(--fin)" }, { name: "Operating", values: res.operating.years.map(y => y.rouEnd), color: "var(--op)" }], labels, { label: "Right-of-use asset at each year end" });
+  const tf = fe.reduce((a, b) => a + b, 0);
+  $("effect-why").textContent = `Same lease, same total cost (${usd(tf)}) either way. A finance lease front-loads expense because interest is highest when the liability is largest; an operating lease spreads one straight-line cost evenly. Year 1 expense is ${usd(fe[0])} as a finance lease and ${usd(oe[0])} as an operating lease.`;
+
+  // 4. Year-end balances
+  $("bs").innerHTML = `<thead><tr><th>Year end</th><th>Lease liability</th><th>Current portion</th><th>Noncurrent</th><th>ROU asset</th><th>${chosen === "finance" ? "Interest" : "Accretion (in lease cost)"}</th>${chosen === "finance" ? "<th>Amortization</th>" : ""}<th>Total expense</th></tr></thead><tbody>` +
+    S.years.map(y => `<tr><td>Year ${y.year}</td><td>${fmt(y.liabilityEnd)}</td><td>${fmt(y.currentLiability)}</td><td>${fmt(y.liabilityEnd - y.currentLiability)}</td><td>${fmt(y.rouEnd)}</td><td>${fmt(y.interest)}</td>${chosen === "finance" ? `<td>${fmt(y.amortization)}</td>` : ""}<td><b>${fmt(y.totalExpense)}</b></td></tr>`).join("") + "</tbody>";
+
+  // 5. Schedule
+  if (!state.view || (state.lastChosen !== chosen)) state.view = chosen;
+  state.lastChosen = chosen;
+  drawSchedule();
+}
+
+function drawSchedule() {
+  const res = state.result, view = state.view, S = res[view];
+  $("tab-fin").setAttribute("aria-pressed", String(view === "finance"));
+  $("tab-op").setAttribute("aria-pressed", String(view === "operating"));
+  if (state.sel >= S.rows.length) state.sel = 0;
+  const head = view === "finance"
+    ? ["Period", "Payment", "Liability, start", "Interest", "Liability, end", "ROU, start", "Amortization", "ROU, end", "Expense"]
+    : ["Period", "Payment", "Liability, start", "Accretion", "Liability, end", "ROU, start", "ROU reduction", "ROU, end", "Lease cost"];
+  $("sched").innerHTML = `<thead><tr>${head.map(h => `<th>${h}</th>`).join("")}</tr></thead><tbody>` +
+    S.rows.map((r, i) => `<tr data-i="${i}" tabindex="0" class="${i === state.sel ? "sel" : ""}${r.period % S.ppy === 0 ? " yearend" : ""}"><td>${r.period}</td><td>${fmt(r.payment)}</td><td>${fmt(r.liabilityBegin)}</td><td>${fmt(r.interest)}</td><td>${fmt(r.liabilityEnd)}</td><td>${fmt(r.rouBegin)}</td><td>${fmt(r.rouReduction)}</td><td>${fmt(r.rouEnd)}</td><td>${fmt(r.expense.total)}</td></tr>`).join("") + "</tbody>";
+  drawEntry();
+}
+function drawEntry() {
+  const S = state.result[state.view], r = S.rows[state.sel];
+  const per = { 12: "Month", 4: "Quarter", 1: "Year" }[S.ppy];
+  const timing = state.input.timing === "advance" ? (r.period === 1 ? " The payment for this period was made at commencement." : " Payment made at the start of the period.") : " Payment made at the end of the period.";
+  $("je-period-cap").textContent = `${per} ${r.period} entry, ${state.view} lease.${r.period <= S.n ? timing : " Lease term has ended; amortization continues over the asset's economic life."}`;
+  $("je-period").innerHTML = jeTable(r.entry);
+  document.querySelectorAll("#sched tr.sel").forEach(el => el.classList.remove("sel"));
+  const row = document.querySelector(`#sched tr[data-i="${state.sel}"]`);
+  if (row) row.classList.add("sel");
+}
+
+$("sched").addEventListener("click", e => { const tr = e.target.closest("tr[data-i]"); if (tr) { state.sel = +tr.dataset.i; drawEntry(); } });
+$("sched").addEventListener("keydown", e => { const tr = e.target.closest("tr[data-i]"); if (tr && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); state.sel = +tr.dataset.i; drawEntry(); } });
+$("tab-fin").addEventListener("click", () => { state.view = "finance"; drawSchedule(); });
+$("tab-op").addEventListener("click", () => { state.view = "operating"; drawSchedule(); });
+$("facts").addEventListener("input", render);
+$("override").addEventListener("change", render);
+$("presets").innerHTML = Object.keys(PRESETS).map(n => `<button type="button" data-p="${n}">${n}</button>`).join("");
+$("presets").addEventListener("click", e => { const b = e.target.closest("button[data-p]"); if (b) { load(PRESETS[b.dataset.p]); $("override").value = ""; state.sel = 0; state.view = null; render(); } });
+
+load(PRESETS["Office space"]);
+render();
+</script>
+</body>
+</html>

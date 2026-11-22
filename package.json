@@ -1,0 +1,7 @@
+{
+  "name": "accounting-lab",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Interactive technical accounting modules, starting with ASC 842 leases",
+  "scripts": { "test": "node tests/asc842.test.js" }
+}
