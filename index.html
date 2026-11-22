@@ -58,7 +58,7 @@ input:focus-visible, select:focus-visible, button:focus-visible { outline: 2px s
 .conventions p { margin: 0 0 6px; }
 
 /* Workpaper */
-main { display: grid; gap: 16px; }
+main { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
 .card { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 20px 22px; }
 h2 { font-size: 1.1rem; font-weight: 800; margin: 0 0 4px; letter-spacing: -0.01em; }
 .step { color: var(--muted); font-weight: 500; margin-right: 6px; }
@@ -126,6 +126,8 @@ table.sched { border-collapse: collapse; width: 100%; font-size: .85rem; min-wid
 @media (max-width: 900px) {
   .app { grid-template-columns: minmax(0, 1fr); padding: 12px; }
   main { min-width: 0; }
+  ol.tests li { grid-template-columns: 34px 1fr; }
+  .tests .detail { grid-column: 2; text-align: left; }
   aside.facts { position: static; max-height: none; }
   .charts { grid-template-columns: 1fr; }
 }
