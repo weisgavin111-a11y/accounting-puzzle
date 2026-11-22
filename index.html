@@ -124,7 +124,8 @@ table.sched { border-collapse: collapse; width: 100%; font-size: .85rem; min-wid
 .bs th { color: var(--muted); font-weight: 600; }
 
 @media (max-width: 900px) {
-  .app { grid-template-columns: 1fr; padding: 12px; }
+  .app { grid-template-columns: minmax(0, 1fr); padding: 12px; }
+  main { min-width: 0; }
   aside.facts { position: static; max-height: none; }
   .charts { grid-template-columns: 1fr; }
 }
